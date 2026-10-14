@@ -4,23 +4,36 @@
 
 export type Level = 1 | 2 | 3;
 
+// Les nombres sont écrits en écriture décimale française sans espace : "3,25", "1000".
+// Les textes (énoncé, indice, correction, choix) acceptent le balisage [[a/b]] pour une fraction.
+
 export type Answer =
   | { type: "number"; value: string }
   | { type: "fraction"; num: number; den: number; accept: "equivalent" | "exact" | "irreductible" }
-  | { type: "multi"; fields: { label: string; value: string }[] }
+  | {
+      type: "multi";
+      fields: { label: string; value: string }[];
+      /** Disposition des champs dans une ligne, ex. "{0} < 7,38 < {1}". */
+      layout?: string;
+    }
   | { type: "choice"; choices: string[]; correct: number };
 
-/** Figure SVG générée. Chaque sorte de figure précisera ses propres champs. */
-export interface Figure {
-  kind: string;
+/** Droite graduée : graduations régulières à partir de `start`, espacées de `step`. */
+export interface NumberLineFigure {
+  kind: "number-line";
+  start: string;
+  step: string;
+  /** Nombre d'intervalles entre la première et la dernière graduation. */
+  intervals: number;
+  /** Graduations dont la valeur est écrite sous la droite (numéros à partir de 0). */
+  labels: number[];
+  points: { tick: number; name: string }[];
 }
 
-export interface Question {
-  /** Identifiant complet de la compétence, ex. "maths.calcul.multiplication". */
-  skill: string;
-  level: Level;
-  /** "gen:<graine>" pour une question générée, ou l'id d'une question de banque. */
-  ref: string;
+export type Figure = NumberLineFigure;
+
+/** Contenu d'une question, tel que le produit un générateur. */
+export interface QuestionContent {
   prompt: string;
   figure?: Figure;
   answer: Answer;
@@ -31,11 +44,19 @@ export interface Question {
   solution: string[];
 }
 
-export type BankQuestion = Omit<Question, "skill" | "ref"> & { id: string };
+export interface Question extends QuestionContent {
+  /** Identifiant complet de la compétence, ex. "maths.calcul.multiplication". */
+  skill: string;
+  level: Level;
+  /** "gen:<graine>" pour une question générée, ou l'id d'une question de banque. */
+  ref: string;
+}
+
+export type BankQuestion = QuestionContent & { id: string; level: Level };
 
 export interface GeneratorModule {
   /** `rng` renvoie un nombre aléatoire dans [0, 1[, à partir d'une graine. */
-  generate(options: { level: Level; rng: () => number }): Question;
+  generate(options: { level: Level; rng: () => number }): QuestionContent;
 }
 
 export interface Skill {

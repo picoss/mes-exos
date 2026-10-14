@@ -21,3 +21,14 @@ export function skillKey(subject: Subject, chapter: Chapter, skill: Skill): stri
 export function isSkillAvailable(skill: Skill): boolean {
   return skill.generator !== undefined || skill.bank !== undefined;
 }
+
+/** Retrouve une compétence à partir de son identifiant complet. */
+export function findSkill(
+  key: string,
+): { subject: Subject; chapter: Chapter; skill: Skill } | undefined {
+  const [subjectId = "", chapterId = "", skillId = ""] = key.split(".");
+  const subject = findSubject(subjectId);
+  const chapter = subject && findChapter(subject, chapterId);
+  const skill = chapter?.skills.find((candidate) => candidate.id === skillId);
+  return subject && chapter && skill ? { subject, chapter, skill } : undefined;
+}

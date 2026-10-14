@@ -28,6 +28,7 @@ Le mode hors ligne (service worker) n'est actif qu'avec `build` + `preview`, pas
 - **Nom du site, thèmes, avatars, paliers d'étoiles** : `src/config.ts`
 - **Textes affichés** : `src/texts.ts`
 - **Chapitres et compétences** : `src/subjects/maths/index.ts`
+- **Exercices générés** : `src/subjects/maths/generators/<chapitre>/<compétence>.ts`, chacun avec son test. Énoncés, indices et corrections y sont écrits en clair ; `[[3/4]]` affiche une fraction en étage.
 - **Logique** (stockage, routage, étoiles…) : `src/core/`, testée sans navigateur
 - **Écrans et composants** : `src/ui/`
 

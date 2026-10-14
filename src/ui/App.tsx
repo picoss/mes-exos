@@ -10,6 +10,7 @@ import { Customize } from "./screens/Customize";
 import { Home } from "./screens/Home";
 import { Onboarding } from "./screens/Onboarding";
 import { Placeholder } from "./screens/Placeholder";
+import { SeriesScreen } from "./screens/SeriesScreen";
 import { SubjectScreen } from "./screens/SubjectScreen";
 import { profile } from "./store";
 
@@ -27,6 +28,7 @@ const ROUTES: [pattern: string, render: Render][] = [
   ["/defis", comingSoon(texts.home.challenges)],
   ["/trophees", comingSoon(texts.home.trophies)],
   ["/parent", comingSoon(texts.home.parent)],
+  ["/serie/:skill", ({ skill = "" }) => <SeriesScreen key={skill} skillKey={skill} />],
   [
     "/:subject",
     ({ subject = "" }) => {

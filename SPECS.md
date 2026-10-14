@@ -1,6 +1,6 @@
 # Spécifications : site d'exercices pour la 6e
 
-> Version 0.4, 15/10/2026. Brouillon à valider (voir les questions ouvertes au §14).
+> Version 0.5, 15/10/2026. Brouillon à valider (voir les questions ouvertes au §14).
 
 ## 1. Objectif
 
@@ -110,6 +110,7 @@ Chaque compétence a 3 niveaux de difficulté, décrits au §9. Pour chaque comp
 - **Descendre** : 3 questions ratées (après 2 essais) sur les 5 dernières → niveau précédent, **sans annonce**.
 - Le niveau peut changer entre deux questions, y compris au milieu d'une série.
 - Les seuils sont réglables dans un fichier de configuration.
+- **Avant cette adaptation (lot 1)**, chaque série monte simplement en difficulté : 3 questions de niveau 1, 4 de niveau 2, puis 3 de niveau 3.
 
 ### 5.2 État d'une compétence (affiché à l'élève)
 
@@ -229,15 +230,15 @@ Les badges non obtenus sont visibles mais grisés, avec leur condition.
 
 C'est ce qu'elle travaille en classe en ce moment (octobre 2026).
 
-| id                    | Compétence                                                                  | Source                                                         | Progression niveau 1 → 3                                                            |
-| --------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `fractions-decimales` | Fraction décimale ↔ écriture décimale                                       | Gén.                                                           | 7/10 = 0,7 → 254/100 = 2,54 → 3 + 4/10 + 5/1 000 = ? ; 0,07 = ?/100                 |
-| `decomposition`       | Décomposer un décimal, valeur d'un chiffre (dixièmes, centièmes, millièmes) | Gén.                                                           | chiffre des dixièmes → nombre de centièmes dans 3,25 (325) → décompositions variées |
-| `decimaux-lettres`    | Lire et écrire un décimal en lettres (« 3 unités et 25 centièmes »)         | Gén. (lettres → chiffres en saisie, chiffres → lettres en QCM) | dixièmes → centièmes → millièmes, formulations variées                              |
-| `fractions-usuelles`  | Fractions simples ↔ écriture décimale                                       | Gén.                                                           | 1/2 = 0,5 ; 1/4 = 0,25 → 3/4, 1/5, 2/5 → fractions > 1 (5/2, 7/4)                   |
-| `droite-graduee`      | Lire l'abscisse d'un point, en écriture décimale ou en fraction décimale    | Gén. + SVG                                                     | dixièmes → centièmes → zoom entre deux graduations (de 2,3 à 2,4)                   |
-| `comparer-ranger`     | Comparer et ranger des décimaux                                             | Gén. (QCM)                                                     | même longueur → pièges (2,5 / 2,15) → le plus petit parmi 4 nombres                 |
-| `encadrer-arrondir`   | Encadrer, intercaler, arrondir                                              | Gén.                                                           | à l'unité → au dixième → au centième, intercaler                                    |
+| id                    | Compétence                                                                  | Source                                                         | Progression niveau 1 → 3                                                                        |
+| --------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `fractions-decimales` | Fraction décimale ↔ écriture décimale                                       | Gén.                                                           | 7/10 = 0,7 → 254/100 = 2,54 → 3 + 4/10 + 5/1 000 = ? ; 0,07 = ?/100                             |
+| `decomposition`       | Décomposer un décimal, valeur d'un chiffre (dixièmes, centièmes, millièmes) | Gén.                                                           | chiffre des dixièmes → nombre de centièmes dans 3,25 (325) → décompositions variées             |
+| `decimaux-lettres`    | Lire et écrire un décimal en lettres (« 3 unités et 25 centièmes »)         | Gén. (lettres → chiffres en saisie, chiffres → lettres en QCM) | dixièmes → centièmes → millièmes, formulations variées                                          |
+| `fractions-usuelles`  | Fractions simples ↔ écriture décimale                                       | Gén.                                                           | 1/2 = 0,5 ; 1/4 = 0,25 → 3/4, 1/5, 2/5 → fractions > 1 (5/2, 7/4)                               |
+| `droite-graduee`      | Lire l'abscisse d'un point, en écriture décimale ou en fraction décimale    | Gén. + SVG                                                     | dixièmes → centièmes → deux nombres seulement : trouver le pas (0,5 ; 0,25 ; 0,2 ; 0,05 ; 0,02) |
+| `comparer-ranger`     | Comparer et ranger des décimaux                                             | Gén. (QCM)                                                     | même longueur → pièges (2,5 / 2,15) → le plus petit parmi 4 nombres                             |
+| `encadrer-arrondir`   | Encadrer, intercaler, arrondir                                              | Gén.                                                           | à l'unité → au dixième → au centième, intercaler                                                |
 
 ### Chapitre 3 : Calcul (`calcul`)
 
@@ -373,7 +374,8 @@ src/
     index.ts                 registre des matières
     maths/
       index.ts               chapitres et compétences
-      generators/            un fichier par compétence générée, avec son test (*.test.ts)
+      generators/<chapitre>/ un fichier par compétence générée, avec son test (*.test.ts)
+      lib/                   écriture des nombres, rangs, nombres en lettres
       bank/                  un fichier par compétence « Banque »
 .github/workflows/deploy.yml   ou .gitlab-ci.yml
 ```
@@ -427,7 +429,7 @@ interface Question {
   level: 1 | 2 | 3;
   ref: string; // "gen:4021337" (graine) ou id de la question de banque
   prompt: string; // "Calcule : 4,5 × 12"
-  figure?: Figure; // { kind: "droite-graduee", ... }
+  figure?: Figure; // { kind: "number-line", ... }
   answer: Answer; // { type: "number", value: "54" }
   unit?: string; // "cm", affiché après le champ
   hint: string; // "Calcule d'abord 4,5 × 10, puis 4,5 × 2."
@@ -526,14 +528,14 @@ seenBadges: [ids]                                      // pour ne pas re-céléb
 
 ## 13. Découpage en lots
 
-| Lot               | Contenu                                                                                                                                                                                             | Résultat                                    |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| 0. Socle          | Projet Vite + TypeScript + Preact, routage, thèmes, stockage versionné, PWA, tests, CI de déploiement                                                                                               | Site vide en ligne, installable             |
-| 1. Première série | Affichage des questions (4 types de réponse), pavé numérique, indice et correction, bilan. Chapitre « Écriture décimale et fractions » en générateurs, avec la droite graduée (première figure SVG) | Elle peut s'entraîner sur sa leçon actuelle |
-| 2. Progression    | Adaptation, révisions, étoiles, écran des compétences, export/import                                                                                                                                | Suivi, PC et tablette synchronisables       |
-| 3. Motivation     | Défis chronométrés, badges, thèmes et avatars à débloquer, sons                                                                                                                                     | Côté ludique complet                        |
-| 4. Espace parent  | Code, tableau de bord, réglages, aperçu du contenu                                                                                                                                                  | Suivi parent                                |
-| 5. Contenu        | Autres chapitres (générateurs + figures SVG), premier lot de la banque                                                                                                                              | Programme de 6e couvert                     |
+| Lot                  | Contenu                                                                                                                                                                                             | Résultat                                    |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| 0. Socle ✅          | Projet Vite + TypeScript + Preact, routage, thèmes, stockage versionné, PWA, tests, CI de déploiement                                                                                               | Site vide en ligne, installable             |
+| 1. Première série ✅ | Affichage des questions (4 types de réponse), pavé numérique, indice et correction, bilan. Chapitre « Écriture décimale et fractions » en générateurs, avec la droite graduée (première figure SVG) | Elle peut s'entraîner sur sa leçon actuelle |
+| 2. Progression       | Adaptation, révisions, étoiles, écran des compétences, export/import                                                                                                                                | Suivi, PC et tablette synchronisables       |
+| 3. Motivation        | Défis chronométrés, badges, thèmes et avatars à débloquer, sons                                                                                                                                     | Côté ludique complet                        |
+| 4. Espace parent     | Code, tableau de bord, réglages, aperçu du contenu                                                                                                                                                  | Suivi parent                                |
+| 5. Contenu           | Autres chapitres (générateurs + figures SVG), premier lot de la banque                                                                                                                              | Programme de 6e couvert                     |
 
 **Pistes pour la v2** : interactions supplémentaires (droite graduée cliquable, glisser-déposer, tableaux à compléter), géométrie interactive, questions de banque avec des nombres tirés au hasard, autres matières, 5e, synchronisation automatique, plusieurs profils, éditeur de questions, police dys et lecture audio.
 
@@ -541,7 +543,7 @@ seenBadges: [ids]                                      // pour ne pas re-céléb
 
 1. **Contenu exact du chapitre « Écriture décimale et fractions »** : la liste du §9 (chapitre 2) correspond-elle au sommaire de son cahier ? Y a-t-il aussi les fractions « partage » (lire une fraction sur une figure) ? Et dans quel ordre viennent les chapitres suivants ? La réponse fixe le contenu du lot 1 et l'ordre du lot 5.
 2. **Conventions de sa professeure** :
-   - nombres en lettres : traits d'union partout (orthographe de 1990) ou règle traditionnelle ?
+   - nombres en lettres : traits d'union partout (orthographe de 1990, choisie par défaut) ou règle traditionnelle ?
    - notation des durées (`1 h 30 min`) ;
    - symbole de la division (`÷` ou `:`) ;
    - π : 3,14 ou touche π ;

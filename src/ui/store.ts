@@ -4,7 +4,7 @@ import { computed, signal } from "@preact/signals";
 import { DEFAULT_AVATAR, DEFAULT_THEME } from "../config";
 import { totalStars } from "../core/rewards";
 import { browserStore, loadData, saveField } from "../core/storage";
-import type { AppData, Profile } from "../core/types";
+import type { AppData, Attempt, Profile, Session } from "../core/types";
 
 const { kv, persistent } = browserStore();
 
@@ -24,6 +24,25 @@ function newProfile(): Profile {
     forceKeypad: false,
     updatedAt: 0,
   };
+}
+
+/** Identifiant unique (crypto.randomUUID n'existe que sur HTTPS ou localhost). */
+export function newId(): string {
+  return (
+    crypto.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
+  );
+}
+
+export function recordAttempt(attempt: Attempt): void {
+  const attempts = [...appData.value.attempts, attempt];
+  appData.value = { ...appData.value, attempts };
+  saveField(kv, "attempts", attempts);
+}
+
+export function recordSession(session: Session): void {
+  const sessions = [...appData.value.sessions, session];
+  appData.value = { ...appData.value, sessions };
+  saveField(kv, "sessions", sessions);
 }
 
 /** Crée le profil au premier lancement, ou le modifie ensuite. */
